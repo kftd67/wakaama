@@ -66,7 +66,7 @@
  *
  */
 
-#include "liblwm2m.h"
+#include "../../core/liblwm2m.h"
 #include "lwm2mclient.h"
 
 #include <stdio.h>

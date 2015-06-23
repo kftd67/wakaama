@@ -20,26 +20,45 @@
 
 #include <stdio.h>
 #include <unistd.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <sys/socket.h>
+//#include <netinet/in.h>
+//#include <arpa/inet.h>
+//#include <netdb.h>
+//#include <sys/socket.h>
+//#include "../client/socket.h"
 #include <sys/stat.h>
+#include "socket/include/socket.h"
 
 #define LWM2M_STANDARD_PORT_STR "5683"
 #define LWM2M_STANDARD_PORT      5683
 
+
 typedef struct _connection_t
 {
-    struct _connection_t *  next;
-    int                     sock;
-    struct sockaddr_in6     addr;
-    size_t                  addrLen;
+	struct _connection_t *  next;
+	int                     sock;
+	struct sockaddr_in     addr;
+	size_t                  addrLen;
 } connection_t;
+
+struct addrinfo {
+	int ai_flags;
+	int ai_family;
+	int ai_socktype;
+	int ai_protocol;
+	size_t ai_addrlen;
+	char * ai_canonname;
+	struct sockaddr * ai_addr;
+	struct addrinfo * ai_next
+};
+
+/* Indicates that the socket is intended for bind()+listen(). */
+#ifndef AI_PASSIVE
+# define AI_PASSIVE     1
+#endif /* AI_PASSIVE */
 
 int create_socket(const char * portStr);
 
-connection_t * connection_find(connection_t * connList, struct sockaddr_storage * addr, size_t addrLen);
+connection_t * connection_find(connection_t * connList, struct sockaddr * addr, size_t addrLen);
 connection_t * connection_new_incoming(connection_t * connList, int sock, struct sockaddr * addr, size_t addrLen);
 connection_t * connection_create(connection_t * connList, int sock, char * host, uint16_t port);
 

@@ -41,7 +41,7 @@
  *  Timestamp   |  5  |  R   | Single  | Yes | Time    |       |   s   | The timestamp when the location measurement was performed.                       |
  */
 
-#include "liblwm2m.h"
+#include "../../core/liblwm2m.h"
 
 #include <stdio.h>
 #include <stdlib.h>

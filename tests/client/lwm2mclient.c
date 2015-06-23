@@ -55,21 +55,22 @@
 */
 
 #include "lwm2mclient.h"
-#include "liblwm2m.h"
-#include "commandline.h"
-#include "connection.h"
+#include "../../core/liblwm2m.h"
+#include "../utils/commandline.h"
+#include "../utils/connection.h"
+#include "socket/include/socket.h"
 
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <ctype.h>
-#include <sys/select.h>
+//#include <sys/select.h>
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
+//#include "socket.h"
+//#include <netinet/in.h>
+//#include "inet.h"
+//#include <netdb.h>
 #include <sys/stat.h>
 #include <errno.h>
 #include <signal.h>
@@ -80,6 +81,12 @@
  * or internals.h LWM2M_MAX_PACKET_SIZE!
  */
 #define MAX_PACKET_SIZE 198
+
+#define	INET6_ADDRSTRLEN	46	/* max size of IPv6 address string:
+				   "xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx" or
+				   "xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:ddd.ddd.ddd.ddd\0"
+				    1234567890123456789012345678901234567890123456 */
+
 
 
 int g_reboot = 0;
@@ -751,16 +758,18 @@ void print_usage(void)
     fprintf(stdout, "\r\n");
 }
 
-int main(int argc, char *argv[])
+int lwm2mclient_main()
 {
     client_data_t data;
     int result;
     lwm2m_context_t * lwm2mH = NULL;
     int i;
     const char * localPort = "56830";
-    const char * server = "localhost";
+    //const char * server = "beta-devices.zatar.com";
+	const char * server = "leshan.eclipse.org";
+	//const char * server = "5.39.83.206";
     const char * serverPort = LWM2M_STANDARD_PORT_STR;
-    char * name = "testlwm2mclient";
+    char * name = "ZebraBlr";
     int lifetime = 300;
     int batterylevelchanging = 0;
     time_t reboot_time = 0;
@@ -801,7 +810,7 @@ int main(int argc, char *argv[])
     };
 
     memset(&data, 0, sizeof(client_data_t));
-
+/* Zebra change: Reddy
     while ((opt = getopt(argc, argv, "bcl:n:p:t:h:")) != -1)
     {
         switch (opt)
@@ -832,7 +841,7 @@ int main(int argc, char *argv[])
             return 0;
         }
     }
-
+*/
     /*
      *This call an internal function that create an IPV6 socket on the port 5683.
      */
@@ -851,6 +860,7 @@ int main(int argc, char *argv[])
     char serverUri[50];
     int serverId = 123;
     sprintf (serverUri, "coap://%s:%s", server, serverPort);
+	fprintf(stderr, " LWM2M serverUri %s\r\n", serverUri);
 #ifdef LWM2M_BOOTSTRAP
     objArray[0] = get_security_object(serverId, serverUri, bootstrapRequested);
 #else
@@ -1062,7 +1072,7 @@ int main(int argc, char *argv[])
          * This part will set up an interruption until an event happen on SDTIN or the socket until "tv" timed out (set
          * with the precedent function)
          */
-        result = select(FD_SETSIZE, &readfds, NULL, NULL, &tv);
+        //result = select(FD_SETSIZE, &readfds, NULL, NULL, &tv);
 
         if (result < 0)
         {
@@ -1081,15 +1091,17 @@ int main(int argc, char *argv[])
              */
             if (FD_ISSET(data.sock, &readfds))
             {
-                struct sockaddr_storage addr;
-                socklen_t addrLen;
+                //struct sockaddr_storage addr;
+				struct sockaddr addr;
+                uint32 addrLen;
 
                 addrLen = sizeof(addr);
 
                 /*
                  * We retrieve the data received
                  */
-                numBytes = recvfrom(data.sock, buffer, MAX_PACKET_SIZE, 0, (struct sockaddr *)&addr, &addrLen);
+                //numBytes = recvfrom(data.sock, buffer, MAX_PACKET_SIZE, 0, (struct sockaddr *)&addr, &addrLen);
+				numBytes = recvfrom(data.sock, buffer, MAX_PACKET_SIZE,0);
 
                 if (0 > numBytes)
                 {
@@ -1098,22 +1110,22 @@ int main(int argc, char *argv[])
                 else if (0 < numBytes)
                 {
                     char s[INET6_ADDRSTRLEN];
-                    in_port_t port;
+                    uint16 port;
                     connection_t * connP;
 
-                    if (AF_INET == addr.ss_family)
+                    if (AF_INET == addr.sa_family)
                     {
                         struct sockaddr_in *saddr = (struct sockaddr_in *)&addr;
-                        inet_ntop(saddr->sin_family, &saddr->sin_addr, s, INET6_ADDRSTRLEN);
+                        //inet_ntop(saddr->sin_family, &saddr->sin_addr, s, INET6_ADDRSTRLEN);
                         port = saddr->sin_port;
                     }
-                    else if (AF_INET6 == addr.ss_family)
-                    {
-                        struct sockaddr_in6 *saddr = (struct sockaddr_in6 *)&addr;
-                        inet_ntop(saddr->sin6_family, &saddr->sin6_addr, s, INET6_ADDRSTRLEN);
-                        port = saddr->sin6_port;
-                    }
-                    fprintf(stderr, "%d bytes received from [%s]:%hu\r\n", numBytes, s, ntohs(port));
+                    //else if (AF_INET6 == addr.ss_family)
+                    //{
+                    //    struct sockaddr_in6 *saddr = (struct sockaddr_in6 *)&addr;
+                    //    inet_ntop(saddr->sin6_family, &saddr->sin6_addr, s, INET6_ADDRSTRLEN);
+                    //    port = saddr->sin6_port;
+                   // }
+                    //fprintf(stderr, "%d bytes received from [%s]:%hu\r\n", numBytes, s, ntohs(port));
 
                     /*
                      * Display it in the STDERR

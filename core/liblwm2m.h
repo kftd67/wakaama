@@ -57,6 +57,13 @@
 extern "C" {
 #endif
 
+
+#define LWM2M_CLIENT_MODE
+#define WITH_LOGS
+#define LWM2M_LITTLE_ENDIAN
+//#define LWM2M_BOOTSTRAP
+
+
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>

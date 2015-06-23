@@ -34,7 +34,7 @@
  *
  */
 
-#include "liblwm2m.h"
+#include "../../core/liblwm2m.h"
 
 #include <stdio.h>
 #include <stdlib.h>
